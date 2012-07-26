@@ -104,8 +104,30 @@ _gaq.push(['_trackPageLoadTime']);
 					<a href="arena.php"><?php echo $name = $_GET['name'];?></a>
 				</div>
 
+				<?php
+				// Grab Team Data
+				$con = mysql_connect($serveraddress, $serveruser, $serverpass, $serverport) or die(mysql_error());
+				mysql_select_db($server_cdb, $con) or die (mysql_error());
+				$teamId = mysql_real_escape_string($_GET['arenaTeamId']);
+				$sql = mysql_query("SELECT captainGuid, name, rating, seasonGames, seasonWins, weekGames, weekWins, rank FROM arena_team WHERE arenaTeamId = $teamId LIMIT 1") or die(mysql_error());
+				$team_row = mysql_fetch_array($sql);
+				$captain_guid = $team_row['captainGuid'];
+				
+				$sql_captain = mysql_query("SELECT * FROM characters WHERE guid = $captain_guid LIMIT 1") or die(mysql_error());
+				$captain_row = mysql_fetch_array($sql_captain);
+				
+				switch ($captain_row['race'])
+				{ 
+					case 1: case 3: case 4: case 7: case 11: case 22:
+						$faction = 'Alliance';
+						break;
+					default:
+						$faction = 'Horde';
+						break;
+				}
+				?>
 				<div class="under-name">
-					<span class="teamsize"><b><?php echo $type ?></b></span> <span class="faction">Alliance</span> Arena Team<span class="comma">,</span>
+					<span class="teamsize"><b><?php echo $type ?></b></span> <span class="faction"><?php echo $faction; ?></span> Arena Team<span class="comma">,</span>
 
 					<span class="text" data-tooltip="<?php echo $website['title']; ?>">
 					<a href=""><font color=""><?php echo $website['title'];?></font></a> <!-- There should be Battlegroup name -->
@@ -115,7 +137,7 @@ _gaq.push(['_trackPageLoadTime']);
 
 				<div class="rank">
 					
-					Last week's ranking: <span class="ranked">--</span>
+					Last week's ranking: <span class="ranked"><?php echo $team_row['rank']; ?>°</span>
 				</div>
 
 			</div>
@@ -124,13 +146,7 @@ _gaq.push(['_trackPageLoadTime']);
 
 
 	<ul class="profile-sidebar-menu" id="profile-sidebar-menu">
-
-
-
-
-
 			<li class="">
-
 
 	<a href="search.php" class="back-to" rel="np"><span class="arrow"><span class="icon">Search</span></span></a>
 
@@ -180,13 +196,13 @@ _gaq.push(['_trackPageLoadTime']);
 		<td class="align-left">
 			<strong class="week">This Week</strong>
 		</td>
-		<td class="align-center"><?php echo $get['weekGames']; ?></td>
+		<td class="align-center"><?php echo $team_row['weekGames']; ?></td>
 		<td class="align-center arenateam-gameswonlost">
-			<span class="arenateam-gameswon"><?php echo $get['weekWins']; ?></span> &#8211; <span class="arenateam-gameslost">0</span>
-			<span class="arenateam-percent">(0%)</span>
+			<span class="arenateam-gameswon"><?php echo $team_row['weekWins']; ?></span> &#8211; <span class="arenateam-gameslost"><?php echo $team_row['weekGames'] - $team_row['weekWins']; ?></span>
+			<span class="arenateam-percent">(<?php echo round($team_row['weekWins'] * 100 / $team_row['weekGames'], 1); ?>%)</span>
 		</td>
 		<td class="align-center">
-				<span class="arenateam-rating"><?php echo $get['rating']; ?></span>
+				<span class="arenateam-rating"><?php echo $team_row['rating']; ?></span>
 		</td>
 	</tr>
 	
@@ -194,13 +210,13 @@ _gaq.push(['_trackPageLoadTime']);
 		<td class="align-left">
 			<strong class="season">Season</strong>
 		</td>
-		<td class="align-center"><?php echo $get['seasonGames']; ?></td>
+		<td class="align-center"><?php echo $team_row['seasonGames']; ?></td>
 		<td class="align-center arenateam-gameswonlost">
-			<span class="arenateam-gameswon"><?php echo $get['seasonWins']; ?></span> &#8211; <span class="arenateam-gameslost">51</span>
-			<span class="arenateam-percent">(47%)</span>
+			<span class="arenateam-gameswon"><?php echo $team_row['seasonWins']; ?></span> &#8211; <span class="arenateam-gameslost"><?php echo $team_row['seasonGames'] - $team_row['seasonWins']; ?></span>
+			<span class="arenateam-percent">(<?php echo round($team_row['seasonWins'] * 100 / $team_row['seasonGames'], 1); ?>%)</span>
 		</td>
 		<td class="align-center">
-				<span class="arenateam-rating"><?php echo $get['rating']; ?></span>
+				<span class="arenateam-rating"><?php echo $team_row['rating']; ?></span>
 		</td>
 	</tr>
 			</tbody>
@@ -250,190 +266,81 @@ _gaq.push(['_trackPageLoadTime']);
 				</tr>
 			</thead>
 			<tbody>
-					<tr class="row1">
-						<td data-raw="Simitis" style="width: 40%">
-							<a href="" rel="np">
-	<span class="character-talents">
-		<span class="icon">
+			<?php
+			// Team member list
+			$sql_members = mysql_query("SELECT * FROM arena_team_member WHERE arenaTeamId = $teamId") or die(mysql_error());
+			$i = 1;
+			while ($member_row = mysql_fetch_assoc($sql_members))
+			{
+				$guid = $member_row['guid'];
+				$sql_pg_member = mysql_query("SELECT * FROM characters WHERE guid = $guid") or die(mysql_error());
+				if (mysql_num_rows($sql_pg_member) > 0)
+				{
+					$pg_member_rows = mysql_fetch_array($sql_pg_member);
+					$seasonLost = $member_row['seasonGames'] - $member_row['seasonWins'];
+					$weekLost = $member_row['weekGames'] - $member_row['weekWins'];
+					echo '<tr class="row'.$i.'">
+						<td data-raw="'.$pg_member_rows['name'].'" style="width: 40%">
+					    <a href="" rel="np"> 
+						<span class="character-talents">
+						<span class="icon">
+						  
+						<span class="icon-frame frame-12 ">
+							<img src="wow/static/images/icons/talents/DK_Bpresence.jpg" alt="" width="12" height="12" />
+						</span>		
+						</span>	
 
+						<span class="points">33<ins>/</ins>3<ins>/</ins>5</span>
+						<span class="clear"><!-- --></span>
+						</span>
+						</a>	
 
+						<a href="advanced.php?name='.$pg_member_rows['name'].'" class="color-c'.$pg_member_rows['class'].'" rel="allow">
+						
+						<span class="icon-frame frame-14 ">
+							<img src="wow/static/images/icons/race/'.$pg_member_rows['race'].'-'.$pg_member_rows['gender'].'.gif" alt="" width="14" height="14" />
+						</span>
+						
+						<span class="icon-frame frame-14 ">
+							<img src="wow/static/images/icons/class/'.$pg_member_rows['class'].'.gif" alt="" width="14" height="14" />
+						</span>
+						
+						'.$pg_member_rows['name'].'
+						</a>	
 
-		<span class="icon-frame frame-12 ">
-			<img src="wow/static/images/icons/talents/DK_Bpresence.jpg" alt="" width="12" height="12" />
-		</span>
-</span>
-		<span class="points">33<ins>/</ins>3<ins>/</ins>5</span>
-	<span class="clear"><!-- --></span>
-	</span>
-							</a>
-							
-							<a href="" class="color-c6" rel="allow">
-
-
-
-
-		<span class="icon-frame frame-14 ">
-			<img src="wow/static/images/icons/race/4-0.gif" alt="" width="14" height="14" />
-		</span>
-
-
-
-
-		<span class="icon-frame frame-14 ">
-			<img src="wow/static/images/icons/class/6.gif" alt="" width="14" height="14" />
-		</span>
-								Simitis
-							</a>
-
-								<span class="leader" data-tooltip="Team Leader"></span>
+						<span class="leader" data-tooltip="Team Leader"></span>
 						</td>
 						<td class="align-center season">
-							96
-
-							<span class="arenateam-percent">(99%)</span>
+							'.$member_row['seasonGames'].'
+							<span class="arenateam-percent">('.round($member_row['seasonGames'] * 100 / $team_row['seasonGames'], 1).'%)</span>
 						</td>
 						<td class="align-center season arenateam-gameswonlost" data-raw="46">
-							<span class="arenateam-gameswon">46</span> &#8211;
-							<span class="arenateam-gameslost">50</span>
+							<span class="arenateam-gameswon">'.$member_row['seasonWins'].'</span> &#8211;
+							<span class="arenateam-gameslost">'.$seasonLost.'</span>
 
-							<span class="arenateam-percent">(48%)</span>
+							<span class="arenateam-percent">('.round($member_row['seasonWins'] * 100 / $member_row['seasonGames'], 1).'%)</span>
 						</td>
 
 						<td class="align-center weekly" style="display: none">
-							0
+							'.$member_row['weekGames'].'
 
-							<span class="arenateam-percent">(0%)</span>
+							<span class="arenateam-percent">('.round($member_row['weekGames'] * 100 / $team_row['weekGames'], 1).'%)</span>
 						</td>
+						
 						<td class="align-center weekly arenateam-gameswonlost" data-raw="0" style="display: none">
-							<span class="arenateam-gameswon">0</span> &#8211;
-							<span class="arenateam-gameslost">0</span>
+							<span class="arenateam-gameswon">'.$member_row['weekWins'].'</span> &#8211;
+							<span class="arenateam-gameslost">'.$weekLost.'</span>
 
-							<span class="arenateam-percent">(0%)</span>
+							<span class="arenateam-percent">('.round($member_row['weekWins'] * 100 / $member_row['weekGames'], 1).'%)</span>
 						</td>
-						<td class="align-center"><span class="arenateam-rating">1313</span></td>
-					</tr>
-					<tr class="row2">
-						<td data-raw="Primordiani" style="width: 40%">
-							<a href="" rel="np">
-	<span class="character-talents">
-		<span class="icon">
-
-
-
-		<span class="icon-frame frame-12 ">
-			<img src="wow/static/images/icons/talents/pala_holy.jpg" alt="" width="12" height="12" />
-		</span>
-</span>
-		<span class="points">32<ins>/</ins>6<ins>/</ins>3</span>
-	<span class="clear"><!-- --></span>
-	</span>
-							</a>
-							
-							<a href="" class="color-c2" rel="allow">
-
-
-
-
-		<span class="icon-frame frame-14 ">
-			<img src="wow/static/images/icons/race/1-1.gif" alt="" width="14" height="14" />
-		</span>
-
-
-
-
-		<span class="icon-frame frame-14 ">
-			<img src="wow/static/images/icons/class/2.gif" alt="" width="14" height="14" />
-		</span>
-								Primordiani
-							</a>
-
+						
+						<td class="align-center"><span class="arenateam-rating">'.$member_row['personalRating'].'</span>
 						</td>
-						<td class="align-center season">
-							20
-
-							<span class="arenateam-percent">(21%)</span>
-						</td>
-						<td class="align-center season arenateam-gameswonlost" data-raw="11">
-							<span class="arenateam-gameswon">11</span> &#8211;
-							<span class="arenateam-gameslost">9</span>
-
-							<span class="arenateam-percent">(55%)</span>
-						</td>
-
-						<td class="align-center weekly" style="display: none">
-							0
-
-							<span class="arenateam-percent">(0%)</span>
-						</td>
-						<td class="align-center weekly arenateam-gameswonlost" data-raw="0" style="display: none">
-							<span class="arenateam-gameswon">0</span> &#8211;
-							<span class="arenateam-gameslost">0</span>
-
-							<span class="arenateam-percent">(0%)</span>
-						</td>
-						<td class="align-center"><span class="arenateam-rating">1276</span></td>
-					</tr>
-					<tr class="row1">
-						<td data-raw="Thelwsex" style="width: 40%">
-							<a href="" rel="np">
-	<span class="character-talents">
-		<span class="icon">
-
-
-
-		<span class="icon-frame frame-12 ">
-			<img src="wow/static/images/icons/spell_nature_magicimmunity.jpg" alt="" width="12" height="12" />
-		</span>
-</span>
-		<span class="points">0<ins>/</ins>7<ins>/</ins>34</span>
-	<span class="clear"><!-- --></span>
-	</span>
-							</a>
-							
-							<a href="" class="color-c7" rel="allow">
-
-
-
-
-		<span class="icon-frame frame-14 ">
-			<img src="wow/static/images/icons/race/11-0.gif" alt="" width="14" height="14" />
-		</span>
-
-
-
-
-		<span class="icon-frame frame-14 ">
-			<img src="wow/static/images/icons/class/7.gif" alt="" width="14" height="14" />
-		</span>
-								Thelwsex
-							</a>
-
-						</td>
-						<td class="align-center season">
-							15
-
-							<span class="arenateam-percent">(15%)</span>
-						</td>
-						<td class="align-center season arenateam-gameswonlost" data-raw="8">
-							<span class="arenateam-gameswon">8</span> &#8211;
-							<span class="arenateam-gameslost">7</span>
-
-							<span class="arenateam-percent">(53%)</span>
-						</td>
-
-						<td class="align-center weekly" style="display: none">
-							0
-
-							<span class="arenateam-percent">(0%)</span>
-						</td>
-						<td class="align-center weekly arenateam-gameswonlost" data-raw="0" style="display: none">
-							<span class="arenateam-gameswon">0</span> &#8211;
-							<span class="arenateam-gameslost">0</span>
-
-							<span class="arenateam-percent">(0%)</span>
-						</td>
-						<td class="align-center"><span class="arenateam-rating">983</span></td>
-					</tr>
+					</tr>';		
+					$i++;						
+				}
+			}
+			?>
 			</tbody>
 		</table>
 	</div>

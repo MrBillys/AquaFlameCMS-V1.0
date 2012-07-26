@@ -224,7 +224,7 @@ _gaq.push(['_trackPageview']);
 <?php
 $con = mysql_connect($serveraddress, $serveruser, $serverpass, $serverport) or die(mysql_error());
 mysql_select_db($server_cdb, $con) or die (mysql_error());
-$sql = mysql_query("SELECT name, rating, seasonGames, seasonWins FROM arena_team WHERE type = '2' ORDER BY rating DESC LIMIT 10") or die(mysql_error());
+$sql = mysql_query("SELECT arenaTeamId, name, rating, seasonGames, seasonWins FROM arena_team WHERE type = '2' ORDER BY rating DESC LIMIT $teamsLimit") or die(mysql_error());
 $i='1';
 $numrows = mysql_num_rows($sql);
 if($numrows > 0)
@@ -249,7 +249,7 @@ echo '
 <a href="" class="item-link color-c9"><strong><a href="">'.$i.'</a></strong>
 </a>
 </td>
-<td style="background-color: '.$bg.';"><center><a href="arena.php?name='.$pvp_row["name"].'">'.$pvp_row["name"].'</a></center></td>
+<td style="background-color: '.$bg.';"><center><a href="arena.php?name='.$pvp_row["name"].'&arenaTeamId='.$pvp_row["arenaTeamId"].'">'.$pvp_row["name"].'</a></center></td>
 <td style="background-color: '.$bg.';"><center>'.$pvp_row["rating"].'</center></td>
 <td style="background-color: '.$bg.';"><center>'.$pvp_row["seasonGames"].'</center></td>
 <td style="background-color: '.$bg.';"><center>'.$pvp_row["seasonWins"].'</center></td>
