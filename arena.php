@@ -107,15 +107,15 @@ _gaq.push(['_trackPageLoadTime']);
 				<div class="under-name">
 					<span class="teamsize"><b><?php echo $type ?></b></span> <span class="faction">Alliance</span> Arena Team<span class="comma">,</span>
 
-					<span class="text" data-tooltip="FACTION">
-					<a href=""><font color=""><?php echo $name = $_GET['name'];?></font></a> <!-- Color has to be Red or Blue due to the Faction -->
+					<span class="text" data-tooltip="<?php echo $website['title']; ?>">
+					<a href=""><font color=""><?php echo $website['title'];?></font></a> <!-- There should be Battlegroup name -->
 					</span>
 					
 				</div>
 
 				<div class="rank">
 					
-					Last week’s ranking: <span class="ranked">--</span>
+					Last week's ranking: <span class="ranked">--</span>
 				</div>
 
 			</div>
@@ -136,10 +136,6 @@ _gaq.push(['_trackPageLoadTime']);
 
 			</li>
 
-
-
-
-
 			<li class=" active">
 
 		<a href="index.html" class="" rel="np">
@@ -152,12 +148,6 @@ _gaq.push(['_trackPageLoadTime']);
 
 		
 	</ul>
-
-
-
-
-
-
 					</div>
 				</div>
 			</div>
@@ -178,7 +168,7 @@ _gaq.push(['_trackPageLoadTime']);
 </th>
 					<th width="23%" class="align-center">	<span class="sort-tab">Matches</span>
 </th>
-					<th width="23%" class="align-center">	<span class="sort-tab">Win – Loss</span>
+					<th width="23%" class="align-center">	<span class="sort-tab">Win - Loss</span>
 </th>
 					<th width="23%" class="align-center">	<span class="sort-tab">Team Rating</span>
 </th>
