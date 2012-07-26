@@ -61,6 +61,8 @@ if($maintenance == true){
 
 ############
 
+$teamsLimit = 50;				// Number of team to display on each page
+
 $connection_setup = mysql_connect($serveraddress . ':' . $serverport,$serveruser,$serverpass)or die(mysql_error());
 mysql_select_db($server_db,$connection_setup)or die(mysql_error());
 
