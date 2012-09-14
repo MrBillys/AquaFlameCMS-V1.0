@@ -62,7 +62,7 @@ Core.baseUrl = '/login/en/';
     $db_setup = mysql_select_db($server_adb,$connection_setup)or die(mysql_error());
     $login_query = mysql_query("SELECT * FROM account WHERE username = UPPER('".$accountName."') AND sha_pass_hash = CONCAT('".$sha_pass_hash."')");
     $login = mysql_fetch_assoc($login_query);
-    if($login){
+    if($login&&!empty($accountName)){
       ?>
       <style type="text/css">
       .loader {
